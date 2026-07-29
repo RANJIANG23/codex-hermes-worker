@@ -5,6 +5,8 @@ Codex / GPT-5.6
   │  stdio MCP：8 个高级任务工具
   ▼
 codex-hermes-worker
+  ├─ 本地 Web Console（127.0.0.1:8765）
+  │    健康状态、任务提交、队列、结果和显式授权入口
   ├─ Pydantic 参数与 Schema 校验
   ├─ SQLite Job、事件、恢复和结果查询
   ├─ 聚合摘要、完整 JSONL、review manifest
@@ -44,3 +46,15 @@ codex-hermes-worker
 ## 团队复用
 
 每位成员在自己的 Windows 电脑上运行同一套源码和安装器。安装器自动发现 Hermes/Python，创建本机 `.venv`，生成带本机绝对路径的项目 MCP 配置；模型、密钥、SQLite、日志和分析结果不跨成员共享。
+
+## 1.1.0 控制台
+
+控制台是 Bridge 的本地浏览器界面，不是独立远程服务。它直接复用同一套
+Pydantic Schema、文件系统策略、JobManager 和 SQLite 数据库。UI 进程使用
+`recover_interrupted=False` 创建执行器，避免在 Codex MCP 仍处理任务时把它
+误判成中断 Job。
+
+HTTP 服务只允许回环地址绑定。页面启动时生成随机请求令牌，API 同时校验
+Host、Origin、Content-Type 和 64 KiB 请求体上限，并返回 CSP、禁止嵌入及
+禁止缓存响应头。`trusted_full` 仍由后端验证固定授权值和额外风险确认，不能
+仅靠前端复选框绕过。

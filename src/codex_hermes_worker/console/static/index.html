@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="console-token" content="__CONSOLE_TOKEN__">
+  <title>Codex Hermes Console</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 3.75 12 1l5 2.75v5.5L22 12v5.5l-5 2.75L12 23l-5-2.75-5-2.75V12l5-2.75v-5.5Zm2 1.18v5.48l-5 2.75v3.16l3 1.65V14.5l5-2.75 5 2.75v3.47l3-1.65v-3.16l-5-2.75V4.93L12 3.28 9 4.93Zm0 9.57v4.37l3 1.65 3-1.65V14.5l-3-1.65-3 1.65Z"/></svg>
+        </span>
+        <span>
+          <strong>Codex Hermes</strong>
+          <small>LOCAL AGENT CONSOLE</small>
+        </span>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="overview" type="button" aria-label="总览 Overview">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
+          <span>总览<small>Overview</small></span>
+        </button>
+        <button class="nav-item" data-view="jobs" type="button" aria-label="任务 Jobs">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2Zm-2 7h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7Zm4 2v2h6v-2H7Z"/></svg>
+          <span>任务<small>Jobs</small></span>
+        </button>
+        <button class="nav-item" data-view="new-task" type="button" aria-label="新建任务 New task">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
+          <span>新建任务<small>New task</small></span>
+        </button>
+        <button class="nav-item danger-nav" data-view="trusted" type="button" aria-label="完整模式 Trusted full">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5 3.84 9.74 9 11 5.16-1.26 9-6 9-11V6l-9-4Zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm3 10H9v-1.5c0-1.66 1.34-3 3-3s3 1.34 3 3V17Z"/></svg>
+          <span>完整模式<small>Trusted full</small></span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="version-line"><span>Version</span><strong>__APP_VERSION__</strong></div>
+        <p>只监听本机回环地址</p>
+      </div>
+    </aside>
+
+    <main id="main-content" class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LOCAL ORCHESTRATION</p>
+          <h1 id="page-title">工作台总览</h1>
+        </div>
+        <div class="topbar-actions">
+          <div id="service-chip" class="status-chip checking" role="status">
+            <span class="status-dot"></span>
+            <span id="service-label">正在检查</span>
+          </div>
+          <button id="refresh-button" class="icon-button" type="button" aria-label="刷新数据" title="刷新数据">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h8V3l-3.35 3.35Z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="global-message" class="message hidden" role="alert"></div>
+
+      <section id="view-overview" class="view active" aria-labelledby="page-title">
+        <div class="hero-panel">
+          <div>
+            <span class="mode-pill">DEFAULT · RESTRICTED BATCH</span>
+            <h2>让本地算力处理批量工作，<br><span>由 Codex 掌握最终判断。</span></h2>
+            <p>当前控制台连接项目级 MCP Bridge、Hermes Agent 与本地 Qwen。所有任务证据和结果保存在本机。</p>
+          </div>
+          <button class="primary-button" type="button" data-go="new-task">
+            创建受限任务
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 5-1.4 1.4 4.6 4.6H5v2h11.2l-4.6 4.6L13 19l7-7-7-7Z"/></svg>
+          </button>
+        </div>
+
+        <div class="metrics-grid" aria-label="任务指标">
+          <article class="metric-card">
+            <span class="metric-label">全部任务</span>
+            <strong id="metric-total">—</strong>
+            <small>Total jobs</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">运行中</span>
+            <strong id="metric-active">—</strong>
+            <small>Queued + running</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">完成</span>
+            <strong id="metric-completed">—</strong>
+            <small>Completed</small>
+          </article>
+          <article class="metric-card review">
+            <span class="metric-label">需要复核</span>
+            <strong id="metric-review">—</strong>
+            <small>Needs review</small>
+          </article>
+        </div>
+
+        <div class="overview-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">PIPELINE</span><h2>链路状态</h2></div>
+              <button class="text-button" type="button" id="health-refresh">重新检测</button>
+            </div>
+            <div class="pipeline" id="pipeline">
+              <div class="pipeline-node"><span class="node-icon">C</span><div><strong>Codex</strong><small>主代理</small></div><i class="node-state ready"></i></div>
+              <span class="pipeline-line"></span>
+              <div class="pipeline-node"><span class="node-icon">B</span><div><strong>Bridge</strong><small>MCP Server</small></div><i id="bridge-state" class="node-state checking"></i></div>
+              <span class="pipeline-line"></span>
+              <div class="pipeline-node"><span class="node-icon">H</span><div><strong>Hermes</strong><small id="hermes-version">Agent</small></div><i id="hermes-state" class="node-state checking"></i></div>
+              <span class="pipeline-line"></span>
+              <div class="pipeline-node"><span class="node-icon">Q</span><div><strong>Qwen</strong><small id="model-name">Local model</small></div><i id="qwen-state" class="node-state checking"></i></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">SECURITY</span><h2>当前安全边界</h2></div>
+            </div>
+            <dl class="security-list">
+              <div><dt>默认执行模式</dt><dd><span class="safe-tag">restricted_batch</span></dd></div>
+              <div><dt>外部网络</dt><dd id="network-policy">默认关闭</dd></div>
+              <div><dt>主机终端</dt><dd>仅完整模式显式授权</dd></div>
+              <div><dt>数据位置</dt><dd id="work-directory">本项目 work 目录</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><span class="section-kicker">RECENT ACTIVITY</span><h2>最近任务</h2></div>
+            <button class="text-button" type="button" data-go="jobs">查看全部</button>
+          </div>
+          <div id="recent-jobs" class="job-list" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <section id="view-jobs" class="view" aria-labelledby="page-title">
+        <div class="section-toolbar">
+          <div class="filter-group" role="group" aria-label="任务状态筛选">
+            <button class="filter-button active" type="button" data-status="">全部</button>
+            <button class="filter-button" type="button" data-status="running">运行中</button>
+            <button class="filter-button" type="button" data-status="completed">已完成</button>
+            <button class="filter-button" type="button" data-status="failed">失败</button>
+          </div>
+          <button class="primary-button compact" type="button" data-go="new-task">新建任务</button>
+        </div>
+        <article class="panel table-panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>任务</th><th>状态</th><th>进度</th><th>处理数</th><th>创建时间</th><th><span class="sr-only">操作</span></th></tr></thead>
+              <tbody id="jobs-table-body"></tbody>
+            </table>
+          </div>
+          <div id="jobs-empty" class="empty-state hidden">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4V4Zm2 2v3h12V6H6Zm0 5v7h12v-7H6Z"/></svg>
+            <strong>还没有符合条件的任务</strong>
+            <p>创建一个受限任务后，它会出现在这里。</p>
+          </div>
+        </article>
+      </section>
+
+      <section id="view-new-task" class="view" aria-labelledby="page-title">
+        <div class="form-layout">
+          <form id="job-form" class="panel form-panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">RESTRICTED BATCH</span><h2>提交本地任务</h2></div>
+              <span class="safe-tag">推荐</span>
+            </div>
+            <p class="form-intro">适合批量分类、反汇编初筛和结果复核。输入目录保持只读，输出仅写入本项目。</p>
+            <label class="field">
+              <span>任务类型</span>
+              <select id="task-type" name="task_type" required></select>
+              <small>系统会自动匹配 Worker Profile 与输出 Schema。</small>
+            </label>
+            <label class="field">
+              <span>输入路径</span>
+              <textarea name="input_paths" rows="3" required placeholder="每行一个相对路径，例如：&#10;testdata/assets.jsonl"></textarea>
+              <small>只能读取配置允许的目录；不会修改源文件。</small>
+            </label>
+            <label class="field">
+              <span>任务要求</span>
+              <textarea name="instructions" rows="6" maxlength="8000" required placeholder="说明要分类、检查或复核的内容，以及期望的证据标准。"></textarea>
+            </label>
+            <label class="field">
+              <span>最大步骤 <output id="steps-output">8</output></span>
+              <input name="max_steps" type="range" min="1" max="12" value="8">
+            </label>
+            <div class="form-actions">
+              <button class="secondary-button" type="reset">清空</button>
+              <button id="submit-job" class="primary-button" type="submit">提交到本地队列</button>
+            </div>
+          </form>
+
+          <aside class="panel explainer-panel">
+            <span class="section-kicker">WHAT HAPPENS NEXT</span>
+            <h2>提交后会发生什么？</h2>
+            <ol class="step-list">
+              <li><span>1</span><div><strong>参数与路径校验</strong><p>Bridge 先检查任务类型、Schema 与只读目录。</p></div></li>
+              <li><span>2</span><div><strong>Hermes 调度 Qwen</strong><p>本地 Agent 执行多步工具调用和语义分析。</p></div></li>
+              <li><span>3</span><div><strong>结果持久化</strong><p>摘要进入 SQLite，完整数据导出为 JSONL。</p></div></li>
+              <li><span>4</span><div><strong>Codex 最终验收</strong><p>仅将冲突、低置信度和复核项交回主代理。</p></div></li>
+            </ol>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-trusted" class="view" aria-labelledby="page-title">
+        <div class="risk-banner">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2Zm1 14h-2v-5h2v5Zm0 3h-2v-2h2v2Z"/></svg>
+          <div><strong>完整模式可直接操作电脑</strong><p>它会启用非沙箱主机终端、文件和代码工具。只对你信任且范围明确的任务使用。</p></div>
+        </div>
+        <form id="trusted-form" class="panel form-panel trusted-panel">
+          <div class="panel-heading">
+            <div><span class="section-kicker danger-text">TRUSTED FULL</span><h2>显式授权任务</h2></div>
+            <span class="danger-tag">高风险</span>
+          </div>
+          <div class="two-columns">
+            <label class="field">
+              <span>工作目录</span>
+              <input name="working_directory" type="text" value="D:\WorkSpace" required>
+            </label>
+            <label class="field">
+              <span>超时（秒）</span>
+              <input name="timeout_seconds" type="number" min="5" max="3600" value="600" required>
+            </label>
+          </div>
+          <fieldset class="field">
+            <legend>允许的工具组</legend>
+            <div id="toolset-options" class="check-grid"></div>
+          </fieldset>
+          <label class="field">
+            <span>任务要求</span>
+            <textarea name="instructions" rows="7" maxlength="16000" required placeholder="准确说明要完成的工作、可修改的范围和最终验收条件。"></textarea>
+          </label>
+          <label class="check-row network-check">
+            <input name="allow_network" type="checkbox">
+            <span><strong>同时允许外部网络</strong><small>仅在任务确实需要网页或外部服务时开启。</small></span>
+          </label>
+          <label class="check-row acknowledgement">
+            <input name="acknowledge" type="checkbox" required>
+            <span><strong>我理解这是非沙箱执行，并明确授权本次任务</strong><small>每次提交都必须重新确认。</small></span>
+          </label>
+          <div class="form-actions">
+            <button class="secondary-button" type="reset">重置</button>
+            <button id="submit-trusted" class="danger-button" type="submit">授权并执行</button>
+          </div>
+          <div id="trusted-result" class="result-box hidden" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="job-dialog" class="job-dialog">
+    <div class="dialog-header">
+      <div><span class="section-kicker">JOB DETAIL</span><h2 id="dialog-title">任务详情</h2></div>
+      <button id="dialog-close" class="icon-button" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z"/></svg>
+      </button>
+    </div>
+    <div id="dialog-content" class="dialog-content"></div>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -72,3 +72,31 @@ def test_durable_export_is_not_limited_by_mcp_query_cap(tmp_path: Path) -> None:
     assert summary["processed"] == 125
     assert "source_path" not in summary
     assert "evidence" not in summary
+
+
+def test_dashboard_job_listing_and_events_are_bounded(tmp_path: Path) -> None:
+    db = JobDatabase(tmp_path / "jobs.db")
+    first = db.create_job(REQUEST)
+    second = db.create_job(REQUEST)
+    assert db.mark_running(first)
+    db.complete(first)
+
+    jobs = db.list_jobs(limit=1)
+    assert len(jobs) == 1
+    assert jobs[0]["job_id"] == second
+    assert "request_json" not in jobs[0]
+
+    completed = db.list_jobs(status="completed")
+    assert [job["job_id"] for job in completed] == [first]
+    events = db.get_events(first)
+    assert [event["event_type"] for event in events] == [
+        "queued",
+        "running",
+        "completed",
+    ]
+
+    metrics = db.dashboard_metrics()
+    assert metrics["total_jobs"] == 2
+    assert metrics["queued_jobs"] == 1
+    assert metrics["completed_jobs"] == 1
+    assert metrics["total_results"] == 0

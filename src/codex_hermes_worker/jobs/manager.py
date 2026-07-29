@@ -12,14 +12,23 @@ from codex_hermes_worker.jobs.worker import LocalWorker
 
 
 class JobManager:
-    def __init__(self, config: AppConfig, database: JobDatabase, worker: LocalWorker):
+    def __init__(
+        self,
+        config: AppConfig,
+        database: JobDatabase,
+        worker: LocalWorker,
+        *,
+        recover_interrupted: bool = True,
+    ):
         self.config = config
         self.database = database
         self.worker = worker
         self.executor = ThreadPoolExecutor(
             max_workers=config.jobs.max_workers, thread_name_prefix="local-worker"
         )
-        self.recovered_jobs = database.recover_interrupted()
+        self.recovered_jobs = (
+            database.recover_interrupted() if recover_interrupted else 0
+        )
         self._lock = threading.Lock()
 
     def submit(self, request: TaskRequest) -> dict[str, Any]:

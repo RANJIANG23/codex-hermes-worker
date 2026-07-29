@@ -10,6 +10,7 @@ Write-Host "LMSTUDIO_API_KEY present: $([bool]$env:LMSTUDIO_API_KEY)"
 Write-Host "Ready marker: $(Test-Path (Join-Path $ProjectRoot 'work\bridge.ready'))"
 $Healthy = $false
 $Registered = $false
+$ConsoleReady = $false
 if (Test-Path $Python) {
     & $Python -m codex_hermes_worker.cli health
     $Healthy = $LASTEXITCODE -eq 0
@@ -22,6 +23,8 @@ try {
 finally {
     Pop-Location
 }
-if (-not ($Healthy -and $Registered)) {
+& (Join-Path $PSScriptRoot 'status-ui.ps1')
+$ConsoleReady = $LASTEXITCODE -eq 0
+if (-not ($Healthy -and $Registered -and $ConsoleReady)) {
     exit 1
 }

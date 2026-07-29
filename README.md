@@ -1,6 +1,6 @@
 # Codex Hermes Worker
 
-Current release / 当前正式版本：**1.0.0**
+Current release / 当前正式版本：**1.1.0**
 
 [English](#english) | [简体中文](#简体中文)
 
@@ -64,6 +64,17 @@ cd codex-hermes-worker
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\status.ps1
 ```
+
+Start the local console:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start.ps1
+```
+
+The browser opens `http://127.0.0.1:8765/`. The console provides live
+Hermes/Qwen health, job submission, queue and result views, cancellation, and
+an explicitly authorized `trusted_full` screen. It is bound to the local
+loopback interface and is not a LAN service.
 
 Run the complete validation flow:
 
@@ -141,6 +152,16 @@ cd codex-hermes-worker
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\status.ps1
 ```
+
+启动本地控制台：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start.ps1
+```
+
+浏览器会打开 `http://127.0.0.1:8765/`。控制台可以查看 Hermes/Qwen
+实时健康状态、提交任务、查看队列和结果、取消任务，并提供需要逐次明确授权的
+`trusted_full` 页面。它只监听本机回环地址，不是局域网服务。
 
 运行完整验证流程：
 

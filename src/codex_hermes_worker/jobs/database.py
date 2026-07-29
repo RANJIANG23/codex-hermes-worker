@@ -9,6 +9,9 @@ from typing import Any, Iterator
 from uuid import uuid4
 
 
+JOB_STATUSES = {"queued", "running", "completed", "failed", "cancelled"}
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -270,6 +273,66 @@ class JobDatabase:
         result.pop("request_json", None)
         result["cancel_requested"] = bool(result["cancel_requested"])
         return result
+
+    def list_jobs(
+        self, *, status: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        if status is not None and status not in JOB_STATUSES:
+            raise ValueError(f"invalid job status: {status}")
+        actual_limit = max(1, min(int(limit), 200))
+        params: list[Any] = []
+        where = ""
+        if status:
+            where = " WHERE status=?"
+            params.append(status)
+        params.append(actual_limit)
+        with self.connection() as conn:
+            rows = conn.execute(
+                "SELECT job_id,task_type,profile,output_schema,status,progress,"
+                "processed,failed_items,cancel_requested,error,created_at,started_at,"
+                f"finished_at FROM jobs{where} ORDER BY created_at DESC LIMIT ?",
+                params,
+            ).fetchall()
+        result = [dict(row) for row in rows]
+        for row in result:
+            row["cancel_requested"] = bool(row["cancel_requested"])
+        return result
+
+    def get_events(self, job_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        self.get_job(job_id)
+        actual_limit = max(1, min(int(limit), 200))
+        with self.connection() as conn:
+            rows = conn.execute(
+                """SELECT event_id,event_type,message,created_at
+                FROM job_events WHERE job_id=?
+                ORDER BY event_id DESC LIMIT ?""",
+                (job_id, actual_limit),
+            ).fetchall()
+        return [dict(row) for row in reversed(rows)]
+
+    def dashboard_metrics(self) -> dict[str, int]:
+        with self.connection() as conn:
+            jobs = conn.execute(
+                """SELECT
+                COUNT(*) AS total_jobs,
+                SUM(CASE WHEN status='queued' THEN 1 ELSE 0 END) AS queued_jobs,
+                SUM(CASE WHEN status='running' THEN 1 ELSE 0 END) AS running_jobs,
+                SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) AS completed_jobs,
+                SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed_jobs,
+                SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) AS cancelled_jobs
+                FROM jobs"""
+            ).fetchone()
+            results = conn.execute(
+                """SELECT COUNT(*) AS total_results,
+                SUM(needs_review) AS needs_review,
+                SUM(conflict) AS conflicts
+                FROM classifications"""
+            ).fetchone()
+        return {
+            key: int(value or 0)
+            for row in (jobs, results)
+            for key, value in dict(row).items()
+        }
 
     def add_classification(self, job_id: str, record: dict[str, Any]) -> None:
         with self.connection() as conn:

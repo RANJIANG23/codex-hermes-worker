@@ -10,17 +10,21 @@ from codex_hermes_worker.jobs.worker import LocalWorker
 
 
 class Runtime:
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, *, recover_interrupted: bool = True):
         self.config = config
         for path in config.filesystem.writable_roots:
             path.mkdir(parents=True, exist_ok=True)
         self.database = JobDatabase(config.jobs.database)
         self.hermes = HermesClient(config)
         self.worker = LocalWorker(config, self.database, self.hermes)
-        self.manager = JobManager(config, self.database, self.worker)
+        self.manager = JobManager(
+            config,
+            self.database,
+            self.worker,
+            recover_interrupted=recover_interrupted,
+        )
 
 
 @lru_cache(maxsize=1)
 def get_runtime() -> Runtime:
     return Runtime(load_config())
-

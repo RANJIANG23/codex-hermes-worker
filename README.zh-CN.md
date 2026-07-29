@@ -1,6 +1,6 @@
 # Codex + Hermes + 本地 Qwen 分层代理
 
-当前正式版本：**1.0.0**
+当前正式版本：**1.1.0**
 
 这是一个可运行、可测试、可给其他团队成员复用的 Windows 本地分层代理系统：
 
@@ -67,6 +67,33 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\stop.ps1
 ```
 
 Bridge 是 stdio MCP，不监听常驻端口。Codex 按任务需要启动；`stop.ps1` 不停止用户 Hermes、LM Studio 或 Gateway。
+
+### 1.1.0 本地控制台
+
+`start.ps1` 默认同时启动控制台并在浏览器打开：
+
+```text
+http://127.0.0.1:8765/
+```
+
+控制台提供：
+
+- Codex → Bridge → Hermes → Qwen 链路健康状态；
+- 任务总数、运行状态和待复核指标；
+- 受限批处理任务表单；
+- 任务队列、进度、事件、结果预览和取消操作；
+- 带非沙箱风险提示和逐次确认的 `trusted_full` 任务入口。
+
+只启动或管理 UI：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-ui.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\status-ui.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\stop-ui.ps1
+```
+
+控制台只绑定 `127.0.0.1`，使用每次启动生成的请求令牌，并校验 Host、
+Origin 和请求大小。当前版本不应通过端口转发或代理开放到局域网。
 
 ## 在 Codex 中确认 MCP
 

@@ -42,3 +42,16 @@ MCP 定义位于项目 `.codex/config.toml`。Codex 只有在受信任项目中�
 ## ADR-008：本地团队拓扑优先
 
 第一版采用每位成员本机的 stdio MCP，不开放 LAN 端口。它避免远程认证、密钥分发和多租户任务隔离问题。集中式 GPU/远程 Bridge 属于后续独立设计，不能通过直接暴露当前 stdio 服务替代。
+
+## ADR-009：控制台采用本地 Web UI
+
+1.1.0 选择由 Python 标准库 HTTP Server 承载原生 HTML/CSS/JavaScript，
+不引入 Electron、Node 运行时或新的生产依赖。
+
+- 保持 Windows 安装包轻量，现有 Python 虚拟环境即可运行。
+- 浏览器负责渲染和响应式布局，团队成员无需学习命令行即可查看和提交任务。
+- 只绑定回环地址并使用进程级请求令牌，不把当前实现当作远程多用户服务。
+- UI 与 stdio MCP 共用业务层和 SQLite，但 UI 启动不会恢复或改写另一个进程
+  正在执行的 Job。
+- `trusted_full` 在界面中明确区分并逐次确认，不与默认受限任务混在同一提交
+  按钮中。
