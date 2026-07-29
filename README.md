@@ -73,8 +73,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start.ps1
 
 The browser opens `http://127.0.0.1:8765/`. The console provides live
 Hermes/Qwen health, job submission, queue and result views, cancellation, and
-an explicitly authorized `trusted_full` screen. It is bound to the local
-loopback interface and is not a LAN service.
+an explicitly authorized `trusted_full` screen. Its Analytics page combines
+job status with input/output Token usage from both isolated Hermes profiles.
+The USD estimate is Hermes reference pricing; actual provider-reported API
+billing is displayed separately because local inference normally has no API
+charge. It is bound to the local loopback interface and is not a LAN service.
 
 Run the complete validation flow:
 

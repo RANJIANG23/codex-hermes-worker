@@ -79,7 +79,9 @@ http://127.0.0.1:8765/
 控制台提供：
 
 - Codex → Bridge → Hermes → Qwen 链路健康状态；
-- 任务总数、运行状态和待复核指标；
+- 独立“数据统计”页面，集中显示任务总数、运行中、完成和待复核指标；
+- 汇总受限批处理与完整工具两种模式的输入 Token、输出 Token 和每日趋势；
+- 分开显示 Hermes 模型参考估算金额与实际 API 账单；
 - 受限批处理任务表单；
 - 任务队列、进度、事件、结果预览和取消操作；
 - 带非沙箱风险提示和逐次确认的 `trusted_full` 任务入口。
@@ -94,6 +96,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\stop-ui.ps1
 
 控制台只绑定 `127.0.0.1`，使用每次启动生成的请求令牌，并校验 Host、
 Origin 和请求大小。当前版本不应通过端口转发或代理开放到局域网。
+
+Token 数据从项目隔离的两套 Hermes `state.db` 账本中只读汇总，并只统计
+本系统以 `source=tool` 产生的会话。金额不是本地电费，也不表示一定发生
+扣费：参考估算使用 Hermes 保存的模型单价；本地 LM Studio 推理通常没有
+API 账单，因此实际扣费会单独显示。
 
 ## 在 Codex 中确认 MCP
 

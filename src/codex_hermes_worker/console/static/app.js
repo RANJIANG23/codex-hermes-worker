@@ -3,6 +3,7 @@
 const token = document.querySelector('meta[name="console-token"]').content;
 const titles = {
   overview: "工作台总览",
+  analytics: "数据统计",
   jobs: "任务与结果",
   "new-task": "新建受限任务",
   trusted: "完整工具模式",
@@ -69,6 +70,7 @@ function setView(name) {
   byId("page-title").textContent = titles[name];
   if (name === "jobs") loadJobs();
   if (name === "overview") loadOverview();
+  if (name === "analytics") loadAnalytics();
 }
 
 function formatDate(value) {
@@ -163,7 +165,6 @@ async function loadOverview() {
   try {
     const overview = await api("/api/overview");
     state.overview = overview;
-    renderMetrics(overview.metrics);
     renderRecentJobs(overview.recent_jobs);
     byId("model-name").textContent = overview.configuration.model;
     byId("work-directory").textContent = overview.configuration.work_directory;
@@ -171,6 +172,189 @@ async function loadOverview() {
     populateToolsets(overview.configuration.trusted_toolsets);
   } catch (error) {
     showMessage(`无法读取总览：${error.message}`, true);
+  }
+}
+
+const numberFormatter = new Intl.NumberFormat("zh-CN");
+const compactFormatter = new Intl.NumberFormat("zh-CN", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 4,
+});
+
+function formatTokenCount(value) {
+  const numeric = Number(value || 0);
+  return numeric >= 1000000
+    ? compactFormatter.format(numeric)
+    : numberFormatter.format(numeric);
+}
+
+function formatAnalyticsPeriod(period) {
+  if (!period?.first_seen || !period?.last_seen) return "暂无用量记录";
+  const format = new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return `${format.format(new Date(period.first_seen))} — ${format.format(
+    new Date(period.last_seen)
+  )}`;
+}
+
+function renderTokenChart(daily) {
+  const chart = byId("token-chart");
+  const tableContainer = byId("token-chart-table");
+  chart.replaceChildren();
+  tableContainer.replaceChildren();
+  if (!daily.length) {
+    const empty = document.createElement("div");
+    empty.className = "chart-empty";
+    empty.textContent = "还没有可显示的每日 Token 数据。";
+    chart.append(empty);
+    return;
+  }
+  const maximum = Math.max(
+    ...daily.map((item) => item.input_tokens + item.output_tokens),
+    1
+  );
+  daily.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "token-chart-row";
+    row.setAttribute(
+      "aria-label",
+      `${item.date}，输入 ${numberFormatter.format(
+        item.input_tokens
+      )}，输出 ${numberFormatter.format(item.output_tokens)}`
+    );
+    const date = document.createElement("span");
+    date.className = "chart-date";
+    date.textContent = item.date.slice(5);
+    const bars = document.createElement("div");
+    bars.className = "chart-bars";
+    const input = document.createElement("i");
+    input.className = "chart-bar input";
+    input.style.width = `${Math.max(
+      1.5,
+      (item.input_tokens / maximum) * 100
+    )}%`;
+    const output = document.createElement("i");
+    output.className = "chart-bar output";
+    output.style.width = `${Math.max(
+      1.5,
+      (item.output_tokens / maximum) * 100
+    )}%`;
+    bars.append(input, output);
+    const value = document.createElement("strong");
+    value.textContent = compactFormatter.format(
+      item.input_tokens + item.output_tokens
+    );
+    row.append(date, bars, value);
+    chart.append(row);
+  });
+
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "查看每日数字明细";
+  const table = document.createElement("table");
+  const head = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["日期", "输入 Token", "输出 Token"].forEach((label) => {
+    const cell = document.createElement("th");
+    cell.textContent = label;
+    headRow.append(cell);
+  });
+  head.append(headRow);
+  const body = document.createElement("tbody");
+  daily.forEach((item) => {
+    const row = document.createElement("tr");
+    [item.date, item.input_tokens, item.output_tokens].forEach((value) => {
+      const cell = document.createElement("td");
+      cell.textContent =
+        typeof value === "number" ? numberFormatter.format(value) : value;
+      row.append(cell);
+    });
+    body.append(row);
+  });
+  table.append(head, body);
+  details.append(summary, table);
+  tableContainer.append(details);
+}
+
+function renderModeBreakdown(modes) {
+  const container = byId("mode-breakdown");
+  container.replaceChildren();
+  const labels = {
+    restricted_batch: ["受限批处理", "默认安全模式"],
+    trusted_full: ["完整工具", "显式授权模式"],
+  };
+  modes.forEach((mode) => {
+    const item = document.createElement("article");
+    item.className = `mode-usage-card ${mode.mode}`;
+    const heading = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = labels[mode.mode]?.[0] || mode.mode;
+    const subtitle = document.createElement("small");
+    subtitle.textContent = labels[mode.mode]?.[1] || "Execution mode";
+    heading.append(title, subtitle);
+    const total = document.createElement("b");
+    total.textContent = formatTokenCount(mode.total_tokens);
+    const totalLabel = document.createElement("span");
+    totalLabel.textContent = "Token";
+    const details = document.createElement("dl");
+    [
+      ["运行次数", numberFormatter.format(mode.runs)],
+      ["输入", numberFormatter.format(mode.input_tokens)],
+      ["输出", numberFormatter.format(mode.output_tokens)],
+      ["估算", usdFormatter.format(mode.estimated_cost_usd)],
+    ].forEach(([label, value]) => {
+      const row = document.createElement("div");
+      const term = document.createElement("dt");
+      term.textContent = label;
+      const description = document.createElement("dd");
+      description.textContent = value;
+      row.append(term, description);
+      details.append(row);
+    });
+    item.append(heading, total, totalLabel, details);
+    container.append(item);
+  });
+}
+
+async function loadAnalytics() {
+  try {
+    const payload = await api("/api/analytics");
+    renderMetrics(payload.jobs);
+    const tokens = payload.tokens;
+    byId("analytics-unavailable").classList.toggle("hidden", tokens.available);
+    byId("analytics-period").textContent = formatAnalyticsPeriod(tokens.period);
+    byId("token-input").textContent = formatTokenCount(tokens.total.input_tokens);
+    byId("token-output").textContent = formatTokenCount(tokens.total.output_tokens);
+    byId("token-total").textContent = formatTokenCount(tokens.total.total_tokens);
+    byId("token-run-detail").textContent = `${numberFormatter.format(
+      tokens.total.runs
+    )} 次本地运行`;
+    byId("token-cost").textContent = tokens.total.estimated_cost_available
+      ? usdFormatter.format(tokens.total.estimated_cost_usd)
+      : "不可用";
+    byId("estimated-cost-detail").textContent =
+      tokens.total.estimated_cost_available
+        ? usdFormatter.format(tokens.total.estimated_cost_usd)
+        : "Hermes 未提供";
+    byId("actual-cost-detail").textContent = tokens.total.actual_cost_available
+      ? usdFormatter.format(tokens.total.actual_cost_usd)
+      : "提供方未报告";
+    byId("api-call-detail").textContent = numberFormatter.format(
+      tokens.total.api_calls
+    );
+    renderTokenChart(tokens.daily);
+    renderModeBreakdown(tokens.modes);
+  } catch (error) {
+    showMessage(`无法读取数据统计：${error.message}`, true);
   }
 }
 
@@ -523,7 +707,7 @@ function bindEvents() {
     });
   });
   byId("refresh-button").addEventListener("click", () =>
-    Promise.all([loadOverview(), loadHealth(), loadJobs()])
+    Promise.all([loadOverview(), loadHealth(), loadJobs(), loadAnalytics()])
   );
   byId("health-refresh").addEventListener("click", loadHealth);
   byId("job-form").addEventListener("submit", submitJob);
@@ -543,6 +727,7 @@ async function init() {
   await loadHealth();
   window.setInterval(() => {
     if (state.view === "overview") loadOverview();
+    if (state.view === "analytics") loadAnalytics();
     if (state.view === "jobs") loadJobs();
   }, 5000);
   window.setInterval(loadHealth, 30000);

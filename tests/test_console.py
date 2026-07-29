@@ -36,6 +36,12 @@ class StubHTTPService:
     def overview(self) -> dict[str, Any]:
         return {"version": "1.1.0", "metrics": {}, "recent_jobs": []}
 
+    def analytics(self) -> dict[str, Any]:
+        return {
+            "jobs": {"total": 2},
+            "tokens": {"available": True, "total": {"input_tokens": 120}},
+        }
+
     def health(self) -> dict[str, Any]:
         return {"ok": True}
 
@@ -105,6 +111,13 @@ def test_console_http_requires_token_and_sets_security_headers() -> None:
             )
             assert allowed.status_code == 200
             assert allowed.json()["version"] == "1.1.0"
+
+            analytics = client.get(
+                "/api/analytics",
+                headers={"X-Console-Token": "unit-test-token"},
+            )
+            assert analytics.status_code == 200
+            assert analytics.json()["tokens"]["total"]["input_tokens"] == 120
 
             foreign_origin = client.post(
                 "/api/jobs",

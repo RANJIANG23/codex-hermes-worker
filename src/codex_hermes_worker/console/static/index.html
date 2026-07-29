@@ -31,6 +31,10 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
           <span>总览<small>Overview</small></span>
         </button>
+        <button class="nav-item" data-view="analytics" type="button" aria-label="数据统计 Analytics">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16v2H2V3h2v16Zm3-2H5v-6h2v6Zm4 0H9V7h2v10Zm4 0h-2V9h2v8Zm4 0h-2V4h2v13Z"/></svg>
+          <span>数据统计<small>Analytics</small></span>
+        </button>
         <button class="nav-item" data-view="jobs" type="button" aria-label="任务 Jobs">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2Zm-2 7h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7Zm4 2v2h6v-2H7Z"/></svg>
           <span>任务<small>Jobs</small></span>
@@ -83,29 +87,6 @@
           </button>
         </div>
 
-        <div class="metrics-grid" aria-label="任务指标">
-          <article class="metric-card">
-            <span class="metric-label">全部任务</span>
-            <strong id="metric-total">—</strong>
-            <small>Total jobs</small>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">运行中</span>
-            <strong id="metric-active">—</strong>
-            <small>Queued + running</small>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">完成</span>
-            <strong id="metric-completed">—</strong>
-            <small>Completed</small>
-          </article>
-          <article class="metric-card review">
-            <span class="metric-label">需要复核</span>
-            <strong id="metric-review">—</strong>
-            <small>Needs review</small>
-          </article>
-        </div>
-
         <div class="overview-grid">
           <article class="panel">
             <div class="panel-heading">
@@ -142,6 +123,104 @@
             <button class="text-button" type="button" data-go="jobs">查看全部</button>
           </div>
           <div id="recent-jobs" class="job-list" aria-live="polite"></div>
+        </article>
+      </section>
+
+      <section id="view-analytics" class="view" aria-labelledby="page-title">
+        <div class="analytics-intro">
+          <div>
+            <span class="section-kicker">LOCAL COMPUTE LEDGER</span>
+            <h2>任务与本地算力用量</h2>
+            <p>统计来自项目隔离的 Hermes 用量账本，只包含由本系统以 <code>source=tool</code> 执行的任务。</p>
+          </div>
+          <div class="analytics-period">
+            <span>统计周期</span>
+            <strong id="analytics-period">正在读取…</strong>
+          </div>
+        </div>
+
+        <div class="metrics-grid analytics-job-metrics" aria-label="任务指标">
+          <article class="metric-card">
+            <span class="metric-label">全部任务</span>
+            <strong id="metric-total">—</strong>
+            <small>Total jobs</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">运行中</span>
+            <strong id="metric-active">—</strong>
+            <small>Queued + running</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">完成</span>
+            <strong id="metric-completed">—</strong>
+            <small>Completed</small>
+          </article>
+          <article class="metric-card review">
+            <span class="metric-label">需要复核</span>
+            <strong id="metric-review">—</strong>
+            <small>Needs review</small>
+          </article>
+        </div>
+
+        <div class="token-metrics-grid" aria-label="Token 用量">
+          <article class="token-card input-token-card">
+            <div class="token-card-heading"><span>输入 Token</span><small>INPUT</small></div>
+            <strong id="token-input">—</strong>
+            <p id="token-input-detail">包含全部本地任务调用</p>
+          </article>
+          <article class="token-card output-token-card">
+            <div class="token-card-heading"><span>输出 Token</span><small>OUTPUT</small></div>
+            <strong id="token-output">—</strong>
+            <p id="token-output-detail">模型生成内容与工具规划</p>
+          </article>
+          <article class="token-card total-token-card">
+            <div class="token-card-heading"><span>Token 合计</span><small>TOTAL</small></div>
+            <strong id="token-total">—</strong>
+            <p id="token-run-detail">— 次本地运行</p>
+          </article>
+          <article class="token-card cost-token-card">
+            <div class="token-card-heading"><span>估算金额</span><small>USD ESTIMATE</small></div>
+            <strong id="token-cost">—</strong>
+            <p>Hermes 模型参考价，不是本地实际扣费</p>
+          </article>
+        </div>
+
+        <div id="analytics-unavailable" class="message error hidden" role="status">
+          当前 Hermes 用量账本不可用。新任务仍可运行，但暂时无法显示 Token 统计。
+        </div>
+
+        <div class="analytics-grid">
+          <article class="panel token-trend-panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">TOKEN TREND</span><h2>每日用量</h2></div>
+              <div class="chart-legend" aria-label="图例">
+                <span><i class="legend-input"></i>输入</span>
+                <span><i class="legend-output"></i>输出</span>
+              </div>
+            </div>
+            <div id="token-chart" class="token-chart" role="img" aria-label="最近十四个活跃日期的输入和输出 Token 用量"></div>
+            <div id="token-chart-table" class="chart-table" aria-label="每日 Token 明细"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">EXECUTION MODES</span><h2>模式分布</h2></div>
+            </div>
+            <div id="mode-breakdown" class="mode-breakdown"></div>
+          </article>
+        </div>
+
+        <article class="panel cost-explainer">
+          <div>
+            <span class="section-kicker">COST EXPLANATION</span>
+            <h2>金额代表什么？</h2>
+            <p>估算金额来自 Hermes 保存的模型定价元数据，用来衡量等量 Token 的参考价值。LM Studio 本地推理通常没有 API 扣费。</p>
+          </div>
+          <dl>
+            <div><dt>Hermes 估算金额</dt><dd id="estimated-cost-detail">—</dd></div>
+            <div><dt>实际 API 账单</dt><dd id="actual-cost-detail">—</dd></div>
+            <div><dt>API 调用次数</dt><dd id="api-call-detail">—</dd></div>
+          </dl>
         </article>
       </section>
 

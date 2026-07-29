@@ -15,6 +15,9 @@
 - 为 `trusted_full` 提供独立高风险页面、工具组选择和逐次明确授权。
 - 新增一键启动、停止和状态 PowerShell 脚本。
 - 控制台只监听 `127.0.0.1`，加入随机请求令牌、Host/Origin 校验和 CSP。
+- 新增“数据统计”页面，将全部任务、运行中、完成和待复核指标集中到该页面。
+- 只读统计两套隔离 Hermes Profile 的输入/输出 Token、趋势和执行模式分布。
+- Hermes 参考估算金额与提供方报告的实际 API 账单分开呈现。
 
 ### 启动
 
@@ -38,3 +41,7 @@ existing stdio MCP integration.
 - Windows scripts for console start, stop, and status.
 - Loopback-only binding, a per-process request token, Host/Origin validation,
   CSP, and bounded request bodies.
+- An Analytics page for job-state metrics, input/output Token usage, daily
+  trends, and restricted-versus-trusted execution breakdown.
+- Read-only aggregation from the isolated Hermes usage ledgers, with reference
+  estimated cost kept separate from provider-reported actual API billing.

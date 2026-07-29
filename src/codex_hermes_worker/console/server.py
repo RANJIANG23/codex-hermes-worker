@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlsplit
 from pydantic import ValidationError
 
 from codex_hermes_worker import __version__
+from codex_hermes_worker.analytics import TokenAnalytics
 from codex_hermes_worker.bridge.config import AppConfig, load_config
 from codex_hermes_worker.bridge.runtime import Runtime
 from codex_hermes_worker.bridge.schemas import TaskRequest, TrustedFullTaskRequest
@@ -73,6 +74,7 @@ class ConsoleService:
     ):
         self.config = config or load_config()
         self.database = JobDatabase(self.config.jobs.database)
+        self.token_analytics = TokenAnalytics(self.config)
         self._runtime_factory = runtime_factory or (
             lambda: Runtime(self.config, recover_interrupted=False)
         )
@@ -158,6 +160,12 @@ class ConsoleService:
     ) -> dict[str, Any]:
         jobs = self.database.list_jobs(status=status, limit=limit)
         return {"count": len(jobs), "jobs": jobs}
+
+    def analytics(self) -> dict[str, Any]:
+        return {
+            "jobs": self.database.dashboard_metrics(),
+            "tokens": self.token_analytics.summary(),
+        }
 
     def job_detail(self, job_id: str) -> dict[str, Any]:
         summary = self.database.summary(job_id)
@@ -344,6 +352,8 @@ class ConsoleRequestHandler(BaseHTTPRequestHandler):
                     result = self.server.service.health()
                 elif path == "/api/overview":
                     result = self.server.service.overview()
+                elif path == "/api/analytics":
+                    result = self.server.service.analytics()
                 elif path == "/api/jobs":
                     query = parse_qs(parsed.query)
                     status = query.get("status", [None])[0] or None
