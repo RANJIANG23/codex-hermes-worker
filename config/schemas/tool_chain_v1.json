@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["answer", "tools_used", "confidence", "needs_review"],
+  "properties": {
+    "answer": {"type": "string"},
+    "tools_used": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "needs_review": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}
+

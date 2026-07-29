@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["category", "summary", "confidence", "evidence", "needs_review"],
+  "properties": {
+    "category": {"enum": ["model", "texture", "animation", "audio", "script", "config", "unknown"]},
+    "summary": {"type": "string", "maxLength": 600},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "needs_review": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}
+

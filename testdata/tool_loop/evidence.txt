@@ -1,0 +1,3 @@
+Local bridge readiness marker: QWEN_TWO_TOOL_CHAIN_OK
+This file is synthetic test evidence and contains no game data or secrets.
+

@@ -1,0 +1,11 @@
+{"address":"0x401000","pseudocode":"h = CreateFileA(path, GENERIC_READ, 1, 0, OPEN_EXISTING, 0, 0); ReadFile(h, buf, size, &read, 0);","strings":["data.pak"],"callers":["0x402100"],"callees":["CreateFileA","ReadFile"],"imports":["KERNEL32.CreateFileA","KERNEL32.ReadFile"]}
+{"address":"0x401180","pseudocode":"if (*(DWORD*)p != 0x20534444) return 0; return load_texture(p);","strings":["texture decode failed"],"callers":["0x405000"],"callees":["load_texture"],"imports":[]}
+{"address":"0x4012F0","pseudocode":"src = fopen(name, \"rb\"); ov_open_callbacks(src, &vf, 0, 0, cb);","strings":[".ogg","audio open failed"],"callers":["0x409000"],"callees":["fopen","ov_open_callbacks"],"imports":["vorbisfile.ov_open_callbacks"]}
+{"address":"0x401420","pseudocode":"lua_getglobal(L, \"OnQuestAccept\"); lua_pushinteger(L, questId); lua_pcall(L, 1, 0, 0);","strings":["OnQuestAccept"],"callers":["0x410010"],"callees":["lua_getglobal","lua_pcall"],"imports":["lua51.lua_pcall"]}
+{"address":"0x4015A0","pseudocode":"for (i=0;i<count;i++) update_bone_pose(skel,i,dt);","strings":["skeleton"],"callers":["0x420000"],"callees":["update_bone_pose"],"imports":[]}
+{"address":"0x401710","pseudocode":"send(sock, packet, len, 0); if (WSAGetLastError()) reconnect();","strings":["network send failed"],"callers":["0x430000"],"callees":["send","WSAGetLastError","reconnect"],"imports":["WS2_32.send"]}
+{"address":"0x4018B0","pseudocode":"sqlite3_prepare_v2(db, sql, -1, &stmt, 0); sqlite3_step(stmt);","strings":["SELECT item_id FROM inventory"],"callers":["0x440000"],"callees":["sqlite3_prepare_v2","sqlite3_step"],"imports":["sqlite3.sqlite3_step"]}
+{"address":"0x401A40","pseudocode":"CryptDecrypt(key, 0, TRUE, 0, buf, &len);","strings":["decrypt failed"],"callers":["0x401000"],"callees":["CryptDecrypt"],"imports":["ADVAPI32.CryptDecrypt"]}
+{"address":"0x401BB0","pseudocode":"if (magic != expected) return ERROR_BAD_FORMAT; memcpy(out, in+16, n);","strings":["bad archive header"],"callers":["0x401000"],"callees":["memcpy"],"imports":[]}
+{"address":"0x401D20","pseudocode":"v3 = (*(int (__thiscall **)(void*,int))(*obj+0x34))(obj, id); return v3;","strings":[],"callers":[],"callees":[],"imports":[]}
+

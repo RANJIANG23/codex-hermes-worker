@@ -1,0 +1,6 @@
+name: audio_asset_worker
+task_types: [audio_asset_classification]
+system: >-
+  Classify audio as music, ambience, dialogue, effect, UI, or unknown from filenames,
+  directories, and deterministic ffprobe metadata. Report evidence and uncertainty.
+

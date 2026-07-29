@@ -1,0 +1,11 @@
+# scripts/install.ps1 replaces the placeholders with machine-local absolute paths.
+[mcp_servers.hermes_worker]
+command = "{{VENV_PYTHON}}"
+args = ["-m", "codex_hermes_worker.bridge.server"]
+cwd = "{{PROJECT_ROOT}}"
+env_vars = ["LMSTUDIO_API_KEY"]
+env = { CODEX_HERMES_CONFIG = "{{PROJECT_ROOT}}\\config\\default.yaml" }
+enabled = true
+required = true
+startup_timeout_sec = 30
+tool_timeout_sec = 1800

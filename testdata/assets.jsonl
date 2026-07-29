@@ -1,0 +1,21 @@
+{"path":"characters/hero/body.mesh","name":"body.mesh","size":412000,"magic":"MESH","neighbors":["body_diffuse.dds","body_idle.anim"],"strings":["Bip01","Material_0"],"metadata":{"vertices":12044,"faces":22980,"bones":64}}
+{"path":"characters/hero/body_diffuse.dds","name":"body_diffuse.dds","size":2048000,"magic":"DDS ","neighbors":["body.mesh"],"strings":[],"metadata":{"width":2048,"height":2048,"pixel_format":"BC7"}}
+{"path":"characters/hero/body_idle.anim","name":"body_idle.anim","size":180000,"magic":"ANIM","neighbors":["body.mesh"],"strings":["Bip01","idle_loop"],"metadata":{"duration":2.4,"bones":64}}
+{"path":"audio/music/town_theme.ogg","name":"town_theme.ogg","size":4820000,"magic":"OggS","neighbors":[],"strings":["TITLE=Town Theme"],"metadata":{"duration":183.2,"codec":"vorbis","channels":2}}
+{"path":"audio/ambience/forest_loop.wav","name":"forest_loop.wav","size":9210000,"magic":"RIFF","neighbors":[],"strings":[],"metadata":{"duration":52.1,"codec":"pcm_s16le","channels":2}}
+{"path":"audio/voice/npc_001_hello.wav","name":"npc_001_hello.wav","size":842000,"magic":"RIFF","neighbors":["npc_001_hello.lip"],"strings":[],"metadata":{"duration":3.1,"codec":"pcm_s16le","channels":1}}
+{"path":"audio/ui/click_confirm.ogg","name":"click_confirm.ogg","size":32000,"magic":"OggS","neighbors":[],"strings":[],"metadata":{"duration":0.2,"codec":"vorbis","channels":2}}
+{"path":"scripts/quest_1001.lua","name":"quest_1001.lua","size":4120,"magic":"text","neighbors":["quest_1001.json"],"strings":["OnQuestAccept","GiveItem"],"metadata":{"encoding":"utf-8"}}
+{"path":"config/graphics.ini","name":"graphics.ini","size":920,"magic":"text","neighbors":[],"strings":["Resolution","ShadowQuality"],"metadata":{"encoding":"utf-8"}}
+{"path":"config/items.json","name":"items.json","size":82000,"magic":"text","neighbors":["items.schema.json"],"strings":["item_id","stack_size"],"metadata":{"encoding":"utf-8"}}
+{"path":"world/props/tree_a.fbx","name":"tree_a.fbx","size":812000,"magic":"Kaydara FBX Binary","neighbors":["tree_a_albedo.png"],"strings":["Model::Tree_A"],"metadata":{"vertices":4022,"faces":7310,"materials":2}}
+{"path":"world/props/tree_a_albedo.png","name":"tree_a_albedo.png","size":920000,"magic":"89504e47","neighbors":["tree_a.fbx"],"strings":[],"metadata":{"width":1024,"height":1024,"pixel_format":"RGBA8"}}
+{"path":"world/props/tree_a_wind.anim","name":"tree_a_wind.anim","size":42000,"magic":"ANIM","neighbors":["tree_a.fbx"],"strings":["wind_strength"],"metadata":{"duration":4.0}}
+{"path":"shaders/water.hlsl","name":"water.hlsl","size":9800,"magic":"text","neighbors":["water.material"],"strings":["Texture2D","PSMain"],"metadata":{"encoding":"utf-8"}}
+{"path":"materials/water.material","name":"water.material","size":1100,"magic":"text","neighbors":["water.hlsl"],"strings":["normal_map","roughness"],"metadata":{"encoding":"utf-8"}}
+{"path":"ui/icons/inventory_slot.tga","name":"inventory_slot.tga","size":262188,"magic":"TGA","neighbors":["inventory.layout"],"strings":[],"metadata":{"width":256,"height":256,"pixel_format":"BGRA8"}}
+{"path":"ui/inventory.layout","name":"inventory.layout","size":7310,"magic":"text","neighbors":["icons/inventory_slot.tga"],"strings":["InventoryGrid","OnSlotClick"],"metadata":{"encoding":"utf-8"}}
+{"path":"effects/fire_cast.vfx","name":"fire_cast.vfx","size":38200,"magic":"VFX0","neighbors":["fire_noise.dds","fire_cast.anim"],"strings":["emitter","spawn_rate"],"metadata":{"emitters":3}}
+{"path":"unknown/blob_0042.bin","name":"blob_0042.bin","size":65536,"magic":"7f91aa02","neighbors":[],"strings":[],"metadata":{"entropy":7.98}}
+{"path":"localization/strings_zh.csv","name":"strings_zh.csv","size":420000,"magic":"text","neighbors":["strings_en.csv"],"strings":["key","translation"],"metadata":{"encoding":"utf-8","rows":8400}}
+

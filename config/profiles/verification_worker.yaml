@@ -1,0 +1,6 @@
+name: verification_worker
+task_types: [verification]
+system: >-
+  Independently re-evaluate supplied evidence. Do not copy the original conclusion.
+  Return agree, disagree, or uncertain plus concise evidence and confidence.
+

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-hermes-worker"
+version = "1.0.0"
+description = "A dual-mode MCP bridge from Codex to Hermes Agent and a local Qwen model."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "RANJIANG23" }]
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
+  "mcp>=1.26,<2",
+  "pydantic>=2.13,<3",
+  "PyYAML>=6,<7",
+]
+
+[project.urls]
+Homepage = "https://github.com/RANJIANG23/codex-hermes-worker"
+Repository = "https://github.com/RANJIANG23/codex-hermes-worker"
+Issues = "https://github.com/RANJIANG23/codex-hermes-worker/issues"
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2"]
+
+[project.scripts]
+codex-hermes-bridge = "codex_hermes_worker.bridge.server:main"
+codex-hermes-tool-server = "codex_hermes_worker.worker_tools.server:main"
+codex-hermes-worker = "codex_hermes_worker.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

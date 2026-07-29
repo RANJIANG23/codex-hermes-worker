@@ -1,0 +1,99 @@
+bridge:
+  name: codex-hermes-worker
+  sync_timeout_seconds: 180
+  max_query_limit: 100
+  default_query_limit: 20
+  max_tool_output_chars: 30000
+  audit_log_max_bytes: 5242880
+
+hermes:
+  executable: auto
+  home: work/hermes-profile
+  base_url: http://127.0.0.1:1234/v1
+  api_key_env: LMSTUDIO_API_KEY
+  provider: openrouter
+  model: qwen3.6-27b
+  max_steps: 12
+  max_runtime_seconds: 600
+  max_output_chars: 30000
+  context_length: 65536
+
+filesystem:
+  readable_roots:
+    - testdata
+    - work/input
+  writable_roots:
+    - work/jobs
+    - work/results
+    - work/review
+    - work/cache
+    - work/logs
+    - work/database
+    - work/hermes-profile
+  maximum_input_file_size: 10485760
+  maximum_text_chars: 30000
+  maximum_binary_slice: 65536
+
+agent:
+  allow_network: false
+  allow_unrestricted_shell: false
+  max_steps: 12
+  max_tool_calls: 30
+  max_runtime_seconds: 600
+
+trusted_full:
+  enabled: true
+  home: work/hermes-profile-trusted
+  required_authorization: explicit_user_authorized
+  working_roots:
+    - ..
+  local_toolsets:
+    - terminal
+    - file
+    - code_execution
+    - vision
+    - skills
+    - todo
+    - memory
+    - context_engine
+    - session_search
+    - clarify
+    - delegation
+    - cronjob
+    - computer_use
+    - codex_worker_tools
+  network_toolsets:
+    - web
+    - browser
+    - x_search
+  optional_toolsets:
+    - video
+    - image_gen
+    - video_gen
+    - tts
+    - stt
+    - homeassistant
+    - spotify
+    - yuanbao
+  max_steps: 30
+  max_runtime_seconds: 1800
+  max_output_chars: 60000
+  checkpoints: true
+
+jobs:
+  database: work/database/jobs.db
+  max_workers: 1
+  result_jsonl_dir: work/results
+  review_dir: work/review
+
+profiles:
+  asset_worker: config/profiles/asset_worker.yaml
+  disassembly_triage_worker: config/profiles/disassembly_triage_worker.yaml
+  audio_asset_worker: config/profiles/audio_asset_worker.yaml
+  verification_worker: config/profiles/verification_worker.yaml
+
+schemas:
+  asset_classification_v1: config/schemas/asset_classification_v1.json
+  disassembly_triage_v1: config/schemas/disassembly_triage_v1.json
+  verification_v1: config/schemas/verification_v1.json
+  tool_chain_v1: config/schemas/tool_chain_v1.json
