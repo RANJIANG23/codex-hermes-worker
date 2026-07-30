@@ -77,11 +77,9 @@ an explicitly authorized `trusted_full` screen. Its Analytics page combines
 job status with input/output Token usage from both isolated Hermes profiles.
 The USD estimate reprices those direct worker tokens at GPT-5.6 Sol standard
 short-context rates ($5/M input and $30/M output, with the published cache
-rates). It is a conservative lower bound, not measured end-to-end savings:
-Codex orchestration, tool payloads, retries, and independent verification are
-outside the Hermes ledger. Actual provider-reported API billing is displayed
-separately because local inference normally has no API charge. It is bound to
-the local loopback interface and is not a LAN service.
+rates) and applies a fixed 2.5 usage multiplier. Actual provider-reported API
+billing is displayed separately because local inference normally has no API
+charge. It is bound to the local loopback interface and is not a LAN service.
 
 Run the complete validation flow:
 

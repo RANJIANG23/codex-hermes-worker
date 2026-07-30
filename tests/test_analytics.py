@@ -143,16 +143,17 @@ def test_token_analytics_merges_tool_sessions_and_excludes_cli(
     assert summary["total"]["estimated_cost_usd"] == 0.015
     assert summary["total"]["actual_cost_usd"] == 0.0
     assert summary["total"]["actual_cost_available"] is True
-    assert summary["total"]["gpt56_sol_estimated_cost_usd"] == 0.0018725
+    assert summary["total"]["gpt56_sol_estimated_cost_usd"] == 0.00468125
     assert summary["pricing"]["model"] == "gpt-5.6-sol"
     assert summary["pricing"]["input_usd_per_million"] == 5.0
     assert summary["pricing"]["output_usd_per_million"] == 30.0
+    assert summary["pricing"]["usage_multiplier"] == 2.5
     assert summary["pricing"]["cost_breakdown"] == {
-        "input_usd": 0.00075,
-        "cached_input_usd": 0.00001,
-        "cache_write_usd": 0.0000625,
-        "output_usd": 0.00105,
-        "total_usd": 0.0018725,
+        "input_usd": 0.001875,
+        "cached_input_usd": 0.000025,
+        "cache_write_usd": 0.00015625,
+        "output_usd": 0.002625,
+        "total_usd": 0.00468125,
     }
     assert [mode["mode"] for mode in summary["modes"]] == [
         "restricted_batch",

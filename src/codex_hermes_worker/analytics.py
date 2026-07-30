@@ -30,6 +30,7 @@ GPT56_SOL_PRICING = {
     "output_usd_per_million": 30.0,
     "source_url": "https://developers.openai.com/api/docs/pricing",
 }
+GPT56_SOL_USAGE_MULTIPLIER = 2.5
 
 
 def _empty_usage(mode: str) -> dict[str, Any]:
@@ -53,22 +54,22 @@ def _empty_usage(mode: str) -> dict[str, Any]:
 
 def _gpt56_sol_cost_breakdown(usage: dict[str, Any]) -> dict[str, float]:
     unit = float(GPT56_SOL_PRICING["unit_tokens"])
-    input_cost = (
+    input_cost = GPT56_SOL_USAGE_MULTIPLIER * (
         usage["input_tokens"]
         * GPT56_SOL_PRICING["input_usd_per_million"]
         / unit
     )
-    cached_input_cost = (
+    cached_input_cost = GPT56_SOL_USAGE_MULTIPLIER * (
         usage["cache_read_tokens"]
         * GPT56_SOL_PRICING["cached_input_usd_per_million"]
         / unit
     )
-    cache_write_cost = (
+    cache_write_cost = GPT56_SOL_USAGE_MULTIPLIER * (
         usage["cache_write_tokens"]
         * GPT56_SOL_PRICING["cache_write_usd_per_million"]
         / unit
     )
-    output_cost = (
+    output_cost = GPT56_SOL_USAGE_MULTIPLIER * (
         usage["output_tokens"]
         * GPT56_SOL_PRICING["output_usd_per_million"]
         / unit
@@ -279,11 +280,15 @@ class TokenAnalytics:
             "measurement_source": "Hermes state.db / session_model_usage",
             "scope": "source=tool in project-isolated Hermes profiles",
             "currency": "USD",
-            "pricing": {**GPT56_SOL_PRICING, "cost_breakdown": gpt56_sol_cost},
+            "pricing": {
+                **GPT56_SOL_PRICING,
+                "usage_multiplier": GPT56_SOL_USAGE_MULTIPLIER,
+                "cost_breakdown": gpt56_sol_cost,
+            },
             "estimate_scope": {
-                "kind": "direct_worker_token_equivalent",
+                "kind": "fixed_multiplier_estimate",
                 "coverage": "Hermes source=tool sessions only",
-                "interpretation": "conservative_lower_bound_not_actual_savings",
+                "interpretation": "experience_adjusted_gpt56_sol_equivalent",
             },
             "total": total,
             "modes": modes,
@@ -311,12 +316,9 @@ class TokenAnalytics:
             "cost_note": (
                 "GPT-5.6 Sol equivalent cost uses OpenAI standard short-context "
                 "rates: $5/M input, $0.50/M cached input, $6.25/M cache writes, "
-                "and $30/M output. Reasoning tokens are a subset of output "
-                "tokens and are not double-counted. This worker-only estimate "
-                "excludes Codex orchestration, prompts, tool schemas/results, "
-                "retries, and independent verification, so it is a conservative "
-                "lower bound rather than measured end-to-end savings. Local "
-                "inference normally has no API charge; actual_cost_usd is shown "
-                "separately."
+                "and $30/M output, with a fixed 2.5 usage multiplier. Reasoning "
+                "tokens are a subset of output tokens and are not double-counted. "
+                "Local inference normally has no API charge; actual_cost_usd is "
+                "shown separately."
             ),
         }

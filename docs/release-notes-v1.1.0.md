@@ -17,8 +17,7 @@
 - 控制台只监听 `127.0.0.1`，加入随机请求令牌、Host/Origin 校验和 CSP。
 - 新增“数据统计”页面，将全部任务、运行中、完成和待复核指标集中到该页面。
 - 只读统计两套隔离 Hermes Profile 的输入/输出 Token、趋势和执行模式分布。
-- 按 GPT‑5.6 Sol 标准短上下文公开价格计算本地 Worker Token 等价金额。
-- 将该保守下限与完整端到端节省、提供方实际 API 账单分开呈现。
+- 按 GPT‑5.6 Sol 标准短上下文公开价格和固定 2.5 倍用量倍率计算估算金额。
 
 ### 启动
 
@@ -45,6 +44,4 @@ existing stdio MCP integration.
 - An Analytics page for job-state metrics, input/output Token usage, daily
   trends, and restricted-versus-trusted execution breakdown.
 - Read-only aggregation from the isolated Hermes usage ledgers, repriced at
-  GPT-5.6 Sol standard short-context rates.
-- The worker-only equivalent is labeled as a conservative lower bound and kept
-  separate from end-to-end savings and provider-reported actual API billing.
+  GPT-5.6 Sol standard short-context rates with a fixed 2.5 usage multiplier.

@@ -5,8 +5,7 @@ Inherits `../MASTER.md`.
 ## Purpose
 
 - Put task counts and local-compute usage in one read-only operational view.
-- Keep “GPT-5.6 Sol direct Token equivalent” visually and verbally separate
-  from “actual API bill” and “measured end-to-end savings”.
+- Keep the GPT-5.6 Sol estimate visually separate from the actual API bill.
 
 ## Structure
 
@@ -15,7 +14,7 @@ Inherits `../MASTER.md`.
 3. Four Token cards: input, output, total, estimated USD.
 4. Accessible 14-active-day Token trend with a numeric table fallback.
 5. Restricted versus trusted execution-mode breakdown.
-6. Cost explanation, coverage limitation, and actual API billing value.
+6. Cost explanation and actual API billing value.
 
 ## Visual and interaction rules
 
