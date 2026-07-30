@@ -12,6 +12,7 @@ const statusLabels = {
   queued: "排队中",
   running: "运行中",
   completed: "已完成",
+  partial: "部分完成",
   failed: "失败",
   cancelled: "已取消",
 };
@@ -159,6 +160,12 @@ function renderMetrics(metrics) {
     (metrics.queued_jobs ?? 0) + (metrics.running_jobs ?? 0);
   byId("metric-completed").textContent = metrics.completed_jobs ?? 0;
   byId("metric-review").textContent = metrics.needs_review ?? 0;
+  byId("metric-completed-detail").textContent = `${
+    metrics.partial_jobs ?? 0
+  } 个部分完成`;
+  byId("metric-review-detail").textContent = `涉及 ${
+    metrics.review_jobs ?? 0
+  } 个任务`;
 }
 
 async function loadOverview() {
@@ -168,6 +175,9 @@ async function loadOverview() {
     renderRecentJobs(overview.recent_jobs);
     byId("model-name").textContent = overview.configuration.model;
     byId("work-directory").textContent = overview.configuration.work_directory;
+    byId("worker-concurrency").textContent = `${
+      overview.configuration.max_workers ?? 1
+    } 路`;
     populatePresets(overview.presets);
     populateToolsets(overview.configuration.trusted_toolsets);
   } catch (error) {

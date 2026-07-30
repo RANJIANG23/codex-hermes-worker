@@ -39,6 +39,45 @@ def test_interrupted_job_is_recovered_without_losing_database(tmp_path: Path) ->
     assert "partial results retained" in row["error"]
 
 
+def test_recovered_job_cannot_be_overwritten_by_stale_worker(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.db"
+    db = JobDatabase(path)
+    job_id = db.create_job(REQUEST)
+    assert db.mark_running(job_id)
+    assert db.update_progress(job_id, 1, 0, 0.2)
+    assert db.recover_interrupted() == 1
+
+    assert db.update_progress(job_id, 5, 0, 1.0) is False
+    assert db.complete(job_id) is None
+    assert db.fail(job_id, "late stale error") is False
+
+    row = db.get_job(job_id)
+    assert row["status"] == "failed"
+    assert row["processed"] == 1
+    assert "partial results retained" in row["error"]
+    assert [event["event_type"] for event in db.get_events(job_id)] == [
+        "queued",
+        "running",
+        "recovered",
+    ]
+
+
+def test_completed_job_with_failed_items_is_reported_as_partial(tmp_path: Path) -> None:
+    db = JobDatabase(tmp_path / "jobs.db")
+    job_id = db.create_job(REQUEST)
+    assert db.mark_running(job_id)
+    assert db.update_progress(job_id, 2, 1, 1.0)
+    assert db.complete(job_id) == "partial"
+
+    assert db.get_job(job_id)["status"] == "partial"
+    assert [job["job_id"] for job in db.list_jobs(status="partial")] == [job_id]
+    assert db.list_jobs(status="completed") == []
+    assert db.get_events(job_id)[-1]["event_type"] == "partial"
+    metrics = db.dashboard_metrics()
+    assert metrics["partial_jobs"] == 1
+    assert metrics["completed_jobs"] == 0
+
+
 def test_cancel_queued_job_is_consistent(tmp_path: Path) -> None:
     db = JobDatabase(tmp_path / "jobs.db")
     job_id = db.create_job(REQUEST)
@@ -99,4 +138,5 @@ def test_dashboard_job_listing_and_events_are_bounded(tmp_path: Path) -> None:
     assert metrics["total_jobs"] == 2
     assert metrics["queued_jobs"] == 1
     assert metrics["completed_jobs"] == 1
+    assert metrics["partial_jobs"] == 0
     assert metrics["total_results"] == 0

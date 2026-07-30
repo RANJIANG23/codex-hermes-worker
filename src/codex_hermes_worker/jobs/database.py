@@ -9,7 +9,7 @@ from typing import Any, Iterator
 from uuid import uuid4
 
 
-JOB_STATUSES = {"queued", "running", "completed", "failed", "cancelled"}
+JOB_STATUSES = {"queued", "running", "completed", "partial", "failed", "cancelled"}
 
 
 def utc_now() -> str:
@@ -176,39 +176,64 @@ class JobDatabase:
                     )
         return bool(changed)
 
-    def update_progress(self, job_id: str, processed: int, failed: int, progress: float) -> None:
+    def update_progress(
+        self, job_id: str, processed: int, failed: int, progress: float
+    ) -> bool:
         with self.connection() as conn:
             with conn:
-                conn.execute(
-                    "UPDATE jobs SET processed=?,failed_items=?,progress=? WHERE job_id=?",
+                changed = conn.execute(
+                    """UPDATE jobs SET processed=?,failed_items=?,progress=?
+                    WHERE job_id=? AND status='running'""",
                     (processed, failed, max(0, min(progress, 1)), job_id),
-                )
+                ).rowcount
+        return bool(changed)
 
-    def complete(self, job_id: str) -> None:
+    def complete(self, job_id: str) -> str | None:
         now = utc_now()
         with self.connection() as conn:
             with conn:
-                conn.execute(
-                    "UPDATE jobs SET status='completed',progress=1,finished_at=? WHERE job_id=?",
+                row = conn.execute(
+                    "SELECT failed_items FROM jobs WHERE job_id=? AND status='running'",
+                    (job_id,),
+                ).fetchone()
+                if row is None:
+                    return None
+                public_status = "partial" if int(row["failed_items"] or 0) else "completed"
+                changed = conn.execute(
+                    """UPDATE jobs SET status='completed',progress=1,finished_at=?
+                    WHERE job_id=? AND status='running'""",
                     (now, job_id),
-                )
-                conn.execute(
-                    "INSERT INTO job_events(job_id,event_type,message,created_at) VALUES (?,?,?,?)",
-                    (job_id, "completed", "job completed", now),
-                )
+                ).rowcount
+                if changed:
+                    message = (
+                        "job completed with unresolved items"
+                        if public_status == "partial"
+                        else "job completed"
+                    )
+                    conn.execute(
+                        """INSERT INTO job_events(job_id,event_type,message,created_at)
+                        VALUES (?,?,?,?)""",
+                        (job_id, public_status, message, now),
+                    )
+                    return public_status
+        return None
 
-    def fail(self, job_id: str, error: str) -> None:
+    def fail(self, job_id: str, error: str) -> bool:
         now = utc_now()
         with self.connection() as conn:
             with conn:
-                conn.execute(
-                    "UPDATE jobs SET status='failed',error=?,finished_at=? WHERE job_id=?",
+                changed = conn.execute(
+                    """UPDATE jobs SET status='failed',error=?,finished_at=?
+                    WHERE job_id=? AND status='running'""",
                     (error[:2000], now, job_id),
-                )
-                conn.execute(
-                    "INSERT INTO job_events(job_id,event_type,message,created_at) VALUES (?,?,?,?)",
-                    (job_id, "failed", error[:1000], now),
-                )
+                ).rowcount
+                if changed:
+                    conn.execute(
+                        """INSERT INTO job_events(job_id,event_type,message,created_at)
+                        VALUES (?,?,?,?)""",
+                        (job_id, "failed", error[:1000], now),
+                    )
+        return bool(changed)
 
     def recover_interrupted(self) -> int:
         now = utc_now()
@@ -256,13 +281,33 @@ class JobDatabase:
             ).fetchone()
         return bool(row and row["cancel_requested"])
 
-    def mark_cancelled(self, job_id: str) -> None:
+    def is_active(self, job_id: str) -> bool:
+        with self.connection() as conn:
+            row = conn.execute(
+                "SELECT status,cancel_requested FROM jobs WHERE job_id=?", (job_id,)
+            ).fetchone()
+        return bool(
+            row
+            and row["status"] == "running"
+            and not bool(row["cancel_requested"])
+        )
+
+    def mark_cancelled(self, job_id: str) -> bool:
+        now = utc_now()
         with self.connection() as conn:
             with conn:
-                conn.execute(
-                    "UPDATE jobs SET status='cancelled',finished_at=? WHERE job_id=?",
-                    (utc_now(), job_id),
-                )
+                changed = conn.execute(
+                    """UPDATE jobs SET status='cancelled',finished_at=?
+                    WHERE job_id=? AND status='running' AND cancel_requested=1""",
+                    (now, job_id),
+                ).rowcount
+                if changed:
+                    conn.execute(
+                        """INSERT INTO job_events(job_id,event_type,message,created_at)
+                        VALUES (?,?,?,?)""",
+                        (job_id, "cancelled", "job cancelled", now),
+                    )
+        return bool(changed)
 
     def get_job(self, job_id: str) -> dict[str, Any]:
         with self.connection() as conn:
@@ -272,6 +317,9 @@ class JobDatabase:
         result = dict(row)
         result.pop("request_json", None)
         result["cancel_requested"] = bool(result["cancel_requested"])
+        result["status"] = self._public_status(
+            result["status"], result["failed_items"]
+        )
         return result
 
     def list_jobs(
@@ -282,7 +330,11 @@ class JobDatabase:
         actual_limit = max(1, min(int(limit), 200))
         params: list[Any] = []
         where = ""
-        if status:
+        if status == "partial":
+            where = " WHERE status='completed' AND failed_items>0"
+        elif status == "completed":
+            where = " WHERE status='completed' AND failed_items=0"
+        elif status:
             where = " WHERE status=?"
             params.append(status)
         params.append(actual_limit)
@@ -296,6 +348,7 @@ class JobDatabase:
         result = [dict(row) for row in rows]
         for row in result:
             row["cancel_requested"] = bool(row["cancel_requested"])
+            row["status"] = self._public_status(row["status"], row["failed_items"])
         return result
 
     def get_events(self, job_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
@@ -317,7 +370,10 @@ class JobDatabase:
                 COUNT(*) AS total_jobs,
                 SUM(CASE WHEN status='queued' THEN 1 ELSE 0 END) AS queued_jobs,
                 SUM(CASE WHEN status='running' THEN 1 ELSE 0 END) AS running_jobs,
-                SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) AS completed_jobs,
+                SUM(CASE WHEN status='completed' AND failed_items=0 THEN 1 ELSE 0 END)
+                    AS completed_jobs,
+                SUM(CASE WHEN status='completed' AND failed_items>0 THEN 1 ELSE 0 END)
+                    AS partial_jobs,
                 SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failed_jobs,
                 SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) AS cancelled_jobs
                 FROM jobs"""
@@ -325,6 +381,7 @@ class JobDatabase:
             results = conn.execute(
                 """SELECT COUNT(*) AS total_results,
                 SUM(needs_review) AS needs_review,
+                COUNT(DISTINCT CASE WHEN needs_review=1 THEN job_id END) AS review_jobs,
                 SUM(conflict) AS conflicts
                 FROM classifications"""
             ).fetchone()
@@ -426,6 +483,12 @@ class JobDatabase:
         item["conflict"] = bool(item["conflict"])
         item["evidence"] = json.loads(item.pop("evidence_json"))
         return item
+
+    @staticmethod
+    def _public_status(status: str, failed_items: int) -> str:
+        if status == "completed" and int(failed_items or 0) > 0:
+            return "partial"
+        return status
 
     def iter_job_results(
         self, job_id: str, *, batch_size: int = 500

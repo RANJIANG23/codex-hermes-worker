@@ -31,6 +31,14 @@ def test_allowed_read_and_deterministic_metadata() -> None:
     assert metadata["size"] > 0
     excerpt = text_excerpt(policy, "testdata/tool_loop/evidence.txt", 32)
     assert excerpt["truncated"] is True
+    continued = text_excerpt(
+        policy,
+        "testdata/tool_loop/evidence.txt",
+        32,
+        excerpt["next_offset_chars"],
+    )
+    assert continued["offset_chars"] == 32
+    assert continued["text"] != excerpt["text"]
 
 
 def test_read_outside_roots_is_blocked() -> None:
@@ -62,8 +70,17 @@ def test_bounded_filename_and_text_search() -> None:
     policy = FilesystemPolicy(load_config())
     names = search_file_names(policy, "testdata/tool_loop", "evidence", 10)
     assert names["matches"][0]["path"].endswith("evidence.txt")
+    glob_names = search_file_names(policy, "testdata/tool_loop", "*.txt", 10)
+    assert glob_names["matches"][0]["path"].endswith("evidence.txt")
     content = search_text(policy, "testdata/tool_loop", "QWEN_TWO_TOOL_CHAIN_OK", 10)
     assert content["matches"][0]["line"] >= 1
+    single_file = search_text(
+        policy,
+        "testdata/tool_loop/evidence.txt",
+        "QWEN_TWO_TOOL_CHAIN_OK",
+        10,
+    )
+    assert single_file["matches"][0]["path"].endswith("evidence.txt")
 
 
 def test_audit_log_rotates_at_configured_limit(tmp_path: Path) -> None:

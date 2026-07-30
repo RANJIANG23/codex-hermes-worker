@@ -71,6 +71,9 @@ def hermes_health() -> dict[str, Any]:
             "path": str(runtime.config.jobs.database),
             "recovered_jobs": runtime.manager.recovered_jobs,
         },
+        "jobs": {
+            "max_workers": runtime.config.jobs.max_workers,
+        },
         "work_directory": str(runtime.config.project_root / "work"),
         "security": {
             "default_execution_mode": "restricted_batch",

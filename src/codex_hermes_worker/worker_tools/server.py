@@ -66,10 +66,20 @@ def list_workspace_files(path: str = "testdata", limit: int = 100) -> dict[str, 
 
 
 @MCP.tool()
-def read_text_excerpt(path: str, max_chars: int = 4000) -> dict[str, Any]:
-    """Read a bounded UTF-8 text excerpt from an allowed path."""
-    args = {"path": path, "max_chars": max_chars}
-    return _run("read_text_excerpt", args, lambda: text_excerpt(POLICY, path, max_chars))
+def read_text_excerpt(
+    path: str, max_chars: int = 4000, offset_chars: int = 0
+) -> dict[str, Any]:
+    """Read a bounded UTF-8 text chunk; use offset_chars to continue a large file."""
+    args = {
+        "path": path,
+        "max_chars": max_chars,
+        "offset_chars": offset_chars,
+    }
+    return _run(
+        "read_text_excerpt",
+        args,
+        lambda: text_excerpt(POLICY, path, max_chars, offset_chars),
+    )
 
 
 @MCP.tool()
@@ -95,7 +105,7 @@ def extract_printable_strings(path: str, limit: int = 100) -> dict[str, Any]:
 
 @MCP.tool()
 def search_file_names(path: str, query: str, limit: int = 100) -> dict[str, Any]:
-    """Find bounded filename matches below an allowed directory."""
+    """Find bounded filename matches; query may be text or a glob such as *.json."""
     args = {"path": path, "query": query, "limit": limit}
     return _run(
         "search_file_names",
@@ -106,7 +116,7 @@ def search_file_names(path: str, query: str, limit: int = 100) -> dict[str, Any]
 
 @MCP.tool()
 def search_text(path: str, query: str, limit: int = 100) -> dict[str, Any]:
-    """Search decoded text with bounded matches, excerpts, and file-size checks."""
+    """Search one allowed text file or all eligible files below an allowed directory."""
     args = {"path": path, "query": query, "limit": limit}
     return _run(
         "search_text",

@@ -29,6 +29,7 @@ and tool-heavy work.
 - Eight high-level MCP tools for health, delegation, durable jobs, result
   summaries, bounded queries, cancellation, and explicitly authorized host work.
 - SQLite job state with WAL, JSONL exports, review manifests, and recovery.
+- Two-way restricted job concurrency against one shared local model.
 - `restricted_batch` for read-only research inputs and project-scoped outputs.
 - `trusted_full` for explicitly authorized terminal, file, code, browser, skill,
   memory, and delegation capabilities available in Hermes.
@@ -75,6 +76,8 @@ The browser opens `http://127.0.0.1:8765/`. The console provides live
 Hermes/Qwen health, job submission, queue and result views, cancellation, and
 an explicitly authorized `trusted_full` screen. Its Analytics page combines
 job status with input/output Token usage from both isolated Hermes profiles.
+The restricted queue can run two local Qwen jobs concurrently and reports
+partial completions separately from clean completions.
 The USD estimate reprices those direct worker tokens at GPT-5.6 Sol standard
 short-context rates ($5/M input and $30/M output, with the published cache
 rates) and applies a fixed 2.5 usage multiplier. Actual provider-reported API
@@ -117,6 +120,7 @@ Codex 负责规划、复杂推理、冲突裁决和最终验收；Hermes/Qwen �
 - Hermes：本地 Agent Loop，选择并调用工具。
 - Qwen：负责本地语义判断、分类、初筛、复核和工具规划。
 - SQLite/JSONL：持久保存任务、证据、结果和复核清单。
+- 受限任务队列：默认两路并发，共用同一个本地 Qwen 模型。
 
 ### 两种执行模式
 

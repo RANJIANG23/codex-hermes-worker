@@ -55,7 +55,7 @@ class JobManager:
                 progress=lambda processed, failed, pct: self.database.update_progress(
                     job_id, processed, failed, pct
                 ),
-                cancelled=lambda: self.database.is_cancel_requested(job_id),
+                cancelled=lambda: not self.database.is_active(job_id),
             )
             if self.database.is_cancel_requested(job_id):
                 self.database.mark_cancelled(job_id)

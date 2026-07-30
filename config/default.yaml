@@ -82,7 +82,7 @@ trusted_full:
 
 jobs:
   database: work/database/jobs.db
-  max_workers: 1
+  max_workers: 2
   result_jsonl_dir: work/results
   review_dir: work/review
 

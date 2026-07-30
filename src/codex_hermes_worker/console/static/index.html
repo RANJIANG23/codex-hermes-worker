@@ -112,6 +112,7 @@
               <div><dt>默认执行模式</dt><dd><span class="safe-tag">restricted_batch</span></dd></div>
               <div><dt>外部网络</dt><dd id="network-policy">默认关闭</dd></div>
               <div><dt>主机终端</dt><dd>仅完整模式显式授权</dd></div>
+              <div><dt>受限任务并发</dt><dd id="worker-concurrency">正在读取…</dd></div>
               <div><dt>数据位置</dt><dd id="work-directory">本项目 work 目录</dd></div>
             </dl>
           </article>
@@ -153,12 +154,12 @@
           <article class="metric-card">
             <span class="metric-label">完成</span>
             <strong id="metric-completed">—</strong>
-            <small>Completed</small>
+            <small id="metric-completed-detail">Completed</small>
           </article>
           <article class="metric-card review">
-            <span class="metric-label">需要复核</span>
+            <span class="metric-label">待复核记录</span>
             <strong id="metric-review">—</strong>
-            <small>Needs review</small>
+            <small id="metric-review-detail">Needs review</small>
           </article>
         </div>
 
@@ -230,6 +231,7 @@
             <button class="filter-button active" type="button" data-status="">全部</button>
             <button class="filter-button" type="button" data-status="running">运行中</button>
             <button class="filter-button" type="button" data-status="completed">已完成</button>
+            <button class="filter-button" type="button" data-status="partial">部分完成</button>
             <button class="filter-button" type="button" data-status="failed">失败</button>
           </div>
           <button class="primary-button compact" type="button" data-go="new-task">新建任务</button>

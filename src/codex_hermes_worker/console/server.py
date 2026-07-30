@@ -149,6 +149,7 @@ class ConsoleService:
                     str(path) for path in self.config.filesystem.readable_roots
                 ],
                 "work_directory": str(self.config.project_root / "work"),
+                "max_workers": self.config.jobs.max_workers,
                 "trusted_full_enabled": self.config.trusted_full.enabled,
                 "trusted_toolsets": self.config.trusted_full.local_toolsets,
                 "network_toolsets": self.config.trusted_full.network_toolsets,

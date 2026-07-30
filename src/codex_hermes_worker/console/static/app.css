@@ -1099,6 +1099,11 @@ svg {
   color: #6ee7b7;
 }
 
+.status-badge.partial {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fcd34d;
+}
+
 .status-badge.running,
 .status-badge.queued {
   background: rgba(34, 211, 238, 0.1);

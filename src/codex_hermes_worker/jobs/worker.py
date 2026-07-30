@@ -58,6 +58,7 @@ class LocalWorker:
             "Analyze exactly one record below. Use only the evidence in the record. "
             "Keep summary under 300 characters. Return one JSON object only, with no "
             "Markdown or commentary, matching this JSON Schema:\n"
+            f"{self._tool_call_guidance()}\n"
             f"{json.dumps(schema, ensure_ascii=False)}\n\n"
             f"Record:\n{json.dumps(row, ensure_ascii=False)}"
         )
@@ -77,9 +78,33 @@ class LocalWorker:
             'the shape {"results":[...]}. Every result must include source_index plus '
             "all fields required by the item JSON Schema below. Preserve each source_index "
             "exactly once and do not add Markdown.\n"
+            f"{self._tool_call_guidance()}\n"
             f"Item JSON Schema:\n{json.dumps(schema, ensure_ascii=False)}\n\n"
             f"Indexed records:\n{json.dumps(indexed, ensure_ascii=False)}"
         )
+
+    @staticmethod
+    def _tool_call_guidance() -> str:
+        return (
+            "Use the supplied record before calling tools. If a deferred tool is needed, "
+            "call tool_search or tool_describe directly, then use tool_call only for the "
+            "returned MCP tool. Never ask tool_call to invoke tool_search, tool_describe, "
+            "or tool_call itself."
+        )
+
+    @staticmethod
+    def _fit_summary_to_schema(
+        candidate: dict[str, Any], schema: dict[str, Any]
+    ) -> dict[str, Any]:
+        summary = candidate.get("summary")
+        maximum = schema.get("properties", {}).get("summary", {}).get("maxLength")
+        if not isinstance(summary, str) or not isinstance(maximum, int):
+            return candidate
+        if maximum < 2 or len(summary) <= maximum:
+            return candidate
+        fitted = dict(candidate)
+        fitted["summary"] = summary[: maximum - 1].rstrip() + "…"
+        return fitted
 
     def _store_semantic_result(
         self,
@@ -156,6 +181,8 @@ class LocalWorker:
                 batch_error = exc
                 by_index = {}
             for local_index, row in enumerate(batch):
+                if cancelled and cancelled():
+                    return results
                 candidate = by_index.get(local_index)
                 try:
                     if candidate is None:
@@ -163,6 +190,7 @@ class LocalWorker:
                         raise ValueError(f"missing source_index {local_index}{suffix}")
                     candidate = dict(candidate)
                     candidate.pop("source_index", None)
+                    candidate = self._fit_summary_to_schema(candidate, schema)
                     jsonschema.validate(candidate, schema)
                     results.append(
                         self._store_semantic_result(request, row, candidate, job_id)
@@ -176,6 +204,7 @@ class LocalWorker:
                             "and obey every enum, type, and length constraint.",
                             timeout=min(self.config.hermes.max_runtime_seconds, 180),
                         )["json"]
+                        repair = self._fit_summary_to_schema(repair, schema)
                         jsonschema.validate(repair, schema)
                         results.append(
                             self._store_semantic_result(request, row, repair, job_id)

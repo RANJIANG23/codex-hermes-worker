@@ -7,6 +7,7 @@ import mimetypes
 import re
 import subprocess
 from collections import Counter
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
@@ -46,16 +47,28 @@ def file_metadata(policy: FilesystemPolicy, value: str) -> dict[str, Any]:
     }
 
 
-def text_excerpt(policy: FilesystemPolicy, value: str, max_chars: int) -> dict[str, Any]:
+def text_excerpt(
+    policy: FilesystemPolicy,
+    value: str,
+    max_chars: int,
+    offset_chars: int = 0,
+) -> dict[str, Any]:
+    if offset_chars < 0:
+        raise ValueError("offset_chars must be >= 0")
     path = policy.resolve_read(value)
     limit = min(max_chars, policy.config.filesystem.maximum_text_chars)
     raw = path.read_bytes()
     text = raw.decode("utf-8", errors="replace")
+    excerpt = text[offset_chars : offset_chars + limit]
+    next_offset = offset_chars + len(excerpt)
     return {
         "path": policy.relative_display(path),
-        "text": text[:limit],
-        "truncated": len(text) > limit,
-        "characters_read": min(len(text), limit),
+        "text": excerpt,
+        "offset_chars": offset_chars,
+        "next_offset_chars": next_offset,
+        "truncated": next_offset < len(text),
+        "characters_read": len(excerpt),
+        "total_characters": len(text),
     }
 
 
@@ -98,9 +111,12 @@ def search_file_names(
         raise NotADirectoryError(root)
     cap = max(1, min(limit, 500))
     needle = query.casefold()
+    uses_glob = any(character in query for character in "*?[]")
     matches: list[dict[str, Any]] = []
     for path in sorted(root.rglob("*")):
-        if path.is_file() and needle in path.name.casefold():
+        name = path.name.casefold()
+        matched = fnmatch(name, needle) if uses_glob else needle in name
+        if path.is_file() and matched:
             matches.append(
                 {
                     "path": policy.relative_display(path),
@@ -119,12 +135,16 @@ def search_text(
     if not query.strip():
         raise ValueError("query cannot be empty")
     root = policy.resolve_read(root_value)
-    if not root.is_dir():
-        raise NotADirectoryError(root)
     cap = max(1, min(limit, 500))
     needle = query.casefold()
     matches: list[dict[str, Any]] = []
-    for path in sorted(root.rglob("*")):
+    if root.is_file():
+        paths = [root]
+    elif root.is_dir():
+        paths = sorted(root.rglob("*"))
+    else:
+        raise FileNotFoundError(root)
+    for path in paths:
         if not path.is_file():
             continue
         if path.stat().st_size > policy.config.filesystem.maximum_input_file_size:
