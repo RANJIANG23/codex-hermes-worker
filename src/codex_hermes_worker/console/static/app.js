@@ -310,7 +310,7 @@ function renderModeBreakdown(modes) {
       ["运行次数", numberFormatter.format(mode.runs)],
       ["输入", numberFormatter.format(mode.input_tokens)],
       ["输出", numberFormatter.format(mode.output_tokens)],
-      ["估算", usdFormatter.format(mode.estimated_cost_usd)],
+      ["Sol 等价", usdFormatter.format(mode.gpt56_sol_estimated_cost_usd)],
     ].forEach(([label, value]) => {
       const row = document.createElement("div");
       const term = document.createElement("dt");
@@ -338,19 +338,18 @@ async function loadAnalytics() {
     byId("token-run-detail").textContent = `${numberFormatter.format(
       tokens.total.runs
     )} 次本地运行`;
-    byId("token-cost").textContent = tokens.total.estimated_cost_available
-      ? usdFormatter.format(tokens.total.estimated_cost_usd)
+    byId("token-cost").textContent = tokens.available
+      ? usdFormatter.format(tokens.total.gpt56_sol_estimated_cost_usd)
       : "不可用";
-    byId("estimated-cost-detail").textContent =
-      tokens.total.estimated_cost_available
-        ? usdFormatter.format(tokens.total.estimated_cost_usd)
-        : "Hermes 未提供";
+    byId("estimated-cost-detail").textContent = tokens.available
+      ? usdFormatter.format(tokens.total.gpt56_sol_estimated_cost_usd)
+      : "Token 账本不可用";
+    byId("pricing-rate-detail").textContent =
+      `$${tokens.pricing.input_usd_per_million}/M 输入 · ` +
+      `$${tokens.pricing.output_usd_per_million}/M 输出`;
     byId("actual-cost-detail").textContent = tokens.total.actual_cost_available
       ? usdFormatter.format(tokens.total.actual_cost_usd)
       : "提供方未报告";
-    byId("api-call-detail").textContent = numberFormatter.format(
-      tokens.total.api_calls
-    );
     renderTokenChart(tokens.daily);
     renderModeBreakdown(tokens.modes);
   } catch (error) {

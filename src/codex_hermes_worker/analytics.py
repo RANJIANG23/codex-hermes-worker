@@ -18,6 +18,19 @@ TOKEN_FIELDS = (
     "reasoning_tokens",
 )
 
+GPT56_SOL_PRICING = {
+    "model": "gpt-5.6-sol",
+    "service_tier": "standard",
+    "context_band": "short_context",
+    "currency": "USD",
+    "unit_tokens": 1_000_000,
+    "input_usd_per_million": 5.0,
+    "cached_input_usd_per_million": 0.5,
+    "cache_write_usd_per_million": 6.25,
+    "output_usd_per_million": 30.0,
+    "source_url": "https://developers.openai.com/api/docs/pricing",
+}
+
 
 def _empty_usage(mode: str) -> dict[str, Any]:
     return {
@@ -34,6 +47,41 @@ def _empty_usage(mode: str) -> dict[str, Any]:
         "actual_cost_usd": 0.0,
         "estimated_cost_available": False,
         "actual_cost_available": False,
+        "gpt56_sol_estimated_cost_usd": 0.0,
+    }
+
+
+def _gpt56_sol_cost_breakdown(usage: dict[str, Any]) -> dict[str, float]:
+    unit = float(GPT56_SOL_PRICING["unit_tokens"])
+    input_cost = (
+        usage["input_tokens"]
+        * GPT56_SOL_PRICING["input_usd_per_million"]
+        / unit
+    )
+    cached_input_cost = (
+        usage["cache_read_tokens"]
+        * GPT56_SOL_PRICING["cached_input_usd_per_million"]
+        / unit
+    )
+    cache_write_cost = (
+        usage["cache_write_tokens"]
+        * GPT56_SOL_PRICING["cache_write_usd_per_million"]
+        / unit
+    )
+    output_cost = (
+        usage["output_tokens"]
+        * GPT56_SOL_PRICING["output_usd_per_million"]
+        / unit
+    )
+    return {
+        "input_usd": round(input_cost, 8),
+        "cached_input_usd": round(cached_input_cost, 8),
+        "cache_write_usd": round(cache_write_cost, 8),
+        "output_usd": round(output_cost, 8),
+        "total_usd": round(
+            input_cost + cached_input_cost + cache_write_cost + output_cost,
+            8,
+        ),
     }
 
 
@@ -103,6 +151,9 @@ class TokenAnalytics:
                     usage[field] = int(row[field] or 0)
                 usage["total_tokens"] = (
                     usage["input_tokens"] + usage["output_tokens"]
+                )
+                usage["gpt56_sol_estimated_cost_usd"] = (
+                    _gpt56_sol_cost_breakdown(usage)["total_usd"]
                 )
                 usage["estimated_cost_usd"] = round(
                     float(row["estimated_cost_usd"] or 0), 8
@@ -188,6 +239,8 @@ class TokenAnalytics:
             total["estimated_cost_usd"] += mode["estimated_cost_usd"]
             total["actual_cost_usd"] += mode["actual_cost_usd"]
         total["total_tokens"] = total["input_tokens"] + total["output_tokens"]
+        gpt56_sol_cost = _gpt56_sol_cost_breakdown(total)
+        total["gpt56_sol_estimated_cost_usd"] = gpt56_sol_cost["total_usd"]
         total["estimated_cost_usd"] = round(total["estimated_cost_usd"], 8)
         total["actual_cost_usd"] = round(total["actual_cost_usd"], 8)
 
@@ -226,6 +279,12 @@ class TokenAnalytics:
             "measurement_source": "Hermes state.db / session_model_usage",
             "scope": "source=tool in project-isolated Hermes profiles",
             "currency": "USD",
+            "pricing": {**GPT56_SOL_PRICING, "cost_breakdown": gpt56_sol_cost},
+            "estimate_scope": {
+                "kind": "direct_worker_token_equivalent",
+                "coverage": "Hermes source=tool sessions only",
+                "interpretation": "conservative_lower_bound_not_actual_savings",
+            },
             "total": total,
             "modes": modes,
             "daily": [
@@ -250,8 +309,14 @@ class TokenAnalytics:
             ],
             "period": {"first_seen": first_seen, "last_seen": last_seen},
             "cost_note": (
-                "Estimated cost is Hermes reference pricing for the model. "
-                "Local inference normally has no API charge; actual_cost_usd "
-                "is shown separately when the provider reports it."
+                "GPT-5.6 Sol equivalent cost uses OpenAI standard short-context "
+                "rates: $5/M input, $0.50/M cached input, $6.25/M cache writes, "
+                "and $30/M output. Reasoning tokens are a subset of output "
+                "tokens and are not double-counted. This worker-only estimate "
+                "excludes Codex orchestration, prompts, tool schemas/results, "
+                "retries, and independent verification, so it is a conservative "
+                "lower bound rather than measured end-to-end savings. Local "
+                "inference normally has no API charge; actual_cost_usd is shown "
+                "separately."
             ),
         }
